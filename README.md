@@ -1,4 +1,4 @@
-All files are independant of each other and can run in the console.
+All files are independent of each other and can fully run without requiring an editor.
 
 1D_Schrodinger_simulator.py
 
