@@ -8,13 +8,13 @@ Simulates the behaviour of an initially gaussian wavicle. The wavefunction is re
 
 2D_Schrodinger_simulator.py
 
-Like with the 1D case, simulates the behaviour of an initially gaussian wavicle. Extra graphs are shown to highlight the real and imaginary behaviour of the wavefunction as well as the potential function. Built in potentials are all the ones included in the 1D case plus the circular well and Thomas Young's double slit.
+Like with the 1D case, simulates the behaviour of an initially gaussian wavicle. Extra graphs are shown to highlight the real and imaginary behaviour of the wavefunction as well as the potential function. Built in potentials are all the ones included in the 1D case plus the circular well and a potential simulating the double slit experiment.
 
 ![circular_example](https://github.com/user-attachments/assets/5c0f9ebf-714d-47cf-b679-5e7537546148)
 
 draw_chaotic_attractor.py
 
-Generates points witha random position and models their time evolution in a known chaotic system. Uses the 4th order Runge-Kutta algorithm to compute the next point in the coupled set of differential equations. Built in attractors are: Lorenz, Dadras, Finance, Nosé-Hoover, Three-Scroll United, Wang-Sun, Lorenz83, Chen, and Thomas. Most attractors and default parameters are taken from: https://www.dynamicmath.xyz/strange-attractors/
+Generates points with a random position and models their time evolution in a known chaotic system. Uses the 4th order Runge-Kutta algorithm to compute the next point in the coupled set of differential equations. Built in attractors are: Lorenz, Dadras, Finance, Nosé-Hoover, Three-Scroll United, Wang-Sun, Lorenz83, Chen, and Thomas. Most attractors and default parameters are taken from: https://www.dynamicmath.xyz/strange-attractors/
 
 ![lorenz_example](https://github.com/user-attachments/assets/95de40df-4473-44d0-932a-7b2f8003c6ee)
 
