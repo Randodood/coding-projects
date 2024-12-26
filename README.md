@@ -29,3 +29,9 @@ hydrogen_orbitals.py
 Generates points with random positions based on the electron probability functions of the hydrogen-like orbitals. The probablitity distribution for parameters n, l, and m, corresponds to the square magnitude of the eigenfunctions of the time-independant Schrödinger equation in spherical coordinates with a Coulomb potential function generated the atom nucleus. Given that the solutions are obtained through separation of variables, the probabilities spanning each variable can also be separated. This code computes the coordinates for each points separately based on one probablity function per coordinate, then puts them together in 3D space.
 
 ![n4l1m0_h](https://github.com/user-attachments/assets/2dd9a870-71ff-4144-a799-08cb1fed4374)
+
+plane_stresses.py
+
+Draws the normal stress, shear stress and traction vectors onto all sides of a rotated wedge stress element based on xy stress input. The Mohr circle is shown on a second graph. This code uses the counter-clockwise positive convention for shear stress.
+
+![plane_stresses_example](https://github.com/user-attachments/assets/94f69bff-b047-49c6-844d-bc9626a3b739)
