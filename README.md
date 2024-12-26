@@ -32,6 +32,6 @@ Generates points with random positions based on the electron probability functio
 
 plane_stresses.py
 
-Draws the normal stress, shear stress and traction vectors onto all sides of a rotated wedge stress element based on xy stress input. The Mohr circle is shown on a second graph. This code uses the counter-clockwise positive convention for shear stress.
+Draws the normal stress, shear stress and traction vectors onto all sides of a rotated wedge stress element based on xy stress input. The Mohr circle is shown on a second graph. This file uses the counter-clockwise positive convention for shear stress.
 
 ![plane_stresses_example](https://github.com/user-attachments/assets/94f69bff-b047-49c6-844d-bc9626a3b739)
