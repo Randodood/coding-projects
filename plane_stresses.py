@@ -22,10 +22,15 @@ ax_elmt = plt.subplot2grid((12,16), (0,0), colspan = 7, rowspan = 7)
 wedge, = ax_elmt.plot(wedge_points[:,0], wedge_points[:,1], color = 'w', alpha = 0.25, linestyle = 'dashed')
 ax_elmt.set_xlim(-3, 3)
 ax_elmt.set_ylim(-3, 3)
-ax_elmt.spines[['top', 'right']].set_visible(False)
+ax_elmt.axis(False)
 ax_elmt.set_title('Stress Element')
 ax_elmt.set_xticks([]), ax_elmt.set_yticks([])
-ax_elmt.set_xlabel('x'), ax_elmt.set_ylabel('y')
+x_dir = mpatches.FancyArrow(-3, -3, 1, 0, color = 'w', head_width = 0.15, head_length = 0.15)
+ax_elmt.add_patch(x_dir)
+ax_elmt.text(-1.5, -3, r'$x$', color = 'w', ha = 'center', va = 'center')
+y_dir = mpatches.FancyArrow(-3, -3, 0, 1, color = 'w', head_width = 0.15, head_length = 0.15)
+ax_elmt.add_patch(y_dir)
+ax_elmt.text(-3, -1.5, r'$y$', color = 'w', ha = 'center', va = 'center')
 
 # Initial stress values
 norm_x = 0.0
@@ -79,7 +84,7 @@ traction_d = mpatches.FancyArrow(pos_d[0], pos_d[1], T_d[0], T_d[1], color = 'k'
 ax_elmt.add_patch(traction_d)
 
 # Rotation slider
-ax_rot = plt.subplot2grid((6,9), (5,0), colspan = 9)
+ax_rot = plt.subplot2grid((24,9), (22,0), colspan = 9, rowspan = 2)
 rot_slider = Slider(
     ax = ax_rot,
     label = r'$\theta$ [deg]',
@@ -94,7 +99,7 @@ rot_slider.valtext.set_size(20)
 rot_slider.valtext.set_color('lightgoldenrodyellow')
 
 # Stress sliders
-ax_sigma_x = plt.subplot2grid((24,18), (17,0), colspan = 4, rowspan = 3)
+ax_sigma_x = plt.subplot2grid((24,18), (19,0), colspan = 4, rowspan = 2)
 sigma_x_slider = Slider(
     ax = ax_sigma_x,
     label = r'$\sigma_x$',
@@ -109,7 +114,7 @@ sigma_x_slider.label.set_size(20)
 sigma_x_slider.valtext.set_size(20)
 sigma_x_slider.valtext.set_color('lime')
 
-ax_sigma_y = plt.subplot2grid((24,18), (17,7), colspan = 4, rowspan = 3)
+ax_sigma_y = plt.subplot2grid((24,18), (19,7), colspan = 4, rowspan = 2)
 sigma_y_slider = Slider(
     ax = ax_sigma_y,
     label = r'$\sigma_y$',
@@ -124,7 +129,7 @@ sigma_y_slider.label.set_size(20)
 sigma_y_slider.valtext.set_size(20)
 sigma_y_slider.valtext.set_color('lime')
 
-ax_tau_xy = plt.subplot2grid((24,18), (17,14), colspan = 4, rowspan = 3)
+ax_tau_xy = plt.subplot2grid((24,18), (19,14), colspan = 4, rowspan = 2)
 tau_xy_slider = Slider(
     ax = ax_tau_xy,
     label = r'$\tau_{xy}$',
@@ -161,6 +166,23 @@ beta_elmt = ax_elmt.text(0.75*pos_y[0], 0.75*pos_y[1], r'$\beta$', color = 'y', 
 alpha_mohr = ax_mohr.text(norm_x, -shear, '', color = 'y', ha = 'center', va = 'center')
 beta_mohr = ax_mohr.text(norm_y, shear, '', color = 'y', ha = 'center', va = 'center')
 center = ax_mohr.scatter((norm_x + norm_y)/2, 0, color = 'y', s= 5)
+
+# Stress display
+ax_sigma_alpha = plt.subplot2grid((24, 18), (16, 0), colspan = 4, rowspan = 3)
+ax_sigma_alpha.set_xlim(-1, 1), ax_sigma_alpha.set_ylim(-1, 1)
+sigma_alpha_text = ax_sigma_alpha.text(0, 0, r'$\sigma_{\alpha}=$'+str(norm_x), color = 'lime', ha = 'center', va = 'center', fontsize = 20)
+ax_sigma_alpha.set_xticks([]), ax_sigma_alpha.set_yticks([])
+ax_sigma_alpha.axis(False)
+ax_sigma_beta = plt.subplot2grid((24, 18), (16, 7), colspan = 4, rowspan = 3)
+ax_sigma_beta.set_xlim(-1, 1), ax_sigma_beta.set_ylim(-1, 1)
+sigma_beta_text = ax_sigma_beta.text(0, 0, r'$\sigma_{\beta}=$'+str(norm_y), color = 'lime', ha = 'center', va = 'center', fontsize = 20)
+ax_sigma_beta.set_xticks([]), ax_sigma_beta.set_yticks([])
+ax_sigma_beta.axis(False)
+ax_tau_alpha_beta = plt.subplot2grid((24, 18), (16, 14), colspan = 4, rowspan = 3)
+ax_tau_alpha_beta.set_xlim(-1, 1), ax_tau_alpha_beta.set_ylim(-1, 1)
+tau_alpha_beta_text = ax_tau_alpha_beta.text(0, 0, r'$\tau_{\alpha\beta}=$'+str(shear), color = 'deepskyblue', ha = 'center', va = 'center', fontsize = 20)
+ax_tau_alpha_beta.set_xticks([]), ax_tau_alpha_beta.set_yticks([])
+ax_tau_alpha_beta.axis(False)
 
 # Update function
 def update(val):
@@ -242,6 +264,10 @@ def update(val):
     
     alpha_elmt.set_position((0.75*pos_x@Q))
     beta_elmt.set_position((0.75*pos_y@Q))
+    
+    sigma_alpha_text.set_text(r'$\sigma_{\alpha}=$'+str(round(sigma_n, 3)))
+    sigma_beta_text.set_text(r'$\sigma_{\beta}=$'+str(round(sigma_t, 3)))
+    tau_alpha_beta_text.set_text(r'$\tau_{\alpha\beta}=$'+str(round(-tau_nt, 3)))
     
     fig.canvas.draw_idle()
 
