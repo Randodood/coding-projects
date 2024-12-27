@@ -34,4 +34,4 @@ plane_stresses.py
 
 Draws the normal stress, shear stress, and traction vectors onto all sides of a rotated wedge stress element based on xy stress input. The Mohr circle is shown on a second graph. This file uses the counter-clockwise positive convention for shear stress.
 
-![plane_stresses_example2](https://github.com/user-attachments/assets/6ac91864-0631-4bd2-a87c-5fbf12af4cd2)
+![plane_stresses_example3](https://github.com/user-attachments/assets/f03d51f4-7fdb-4c2b-a46c-e06489dd7325)
