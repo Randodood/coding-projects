@@ -19,7 +19,7 @@ fig = plt.figure(figsize=(10,7.5))
 
 # Wedge shaped stress element
 ax_elmt = plt.subplot2grid((12,16), (0,0), colspan = 7, rowspan = 7)
-wedge, = ax_elmt.plot(wedge_points[:,0], wedge_points[:,1], color = 'w', alpha = 0.25, linestyle = 'dashed')
+wedge, = ax_elmt.plot(wedge_points[:,0], wedge_points[:,1], color = 'w', alpha = 0.35, linestyle = 'dashed')
 ax_elmt.set_xlim(-3, 3)
 ax_elmt.set_ylim(-3, 3)
 ax_elmt.axis(False)
@@ -157,8 +157,8 @@ ax_mohr.set_xlabel(r'$\sigma$'), ax_mohr.set_ylabel(r'$\tau$')
 ax_mohr.set_xticks([-2, -1, 0, 1, 2]), ax_mohr.set_yticks([-2, -1, 0, 1, 2])
 ax_mohr.set_title('Mohr Circle')
 init_mohr_circle = mohr_circle(norm_x, norm_y, shear)
-circle, = ax_mohr.plot(init_mohr_circle[:,0], init_mohr_circle[:,1], color = 'w', alpha = 0.25, linestyle = 'dashed')
-nt_line, = ax_mohr.plot([norm_x,norm_y], [shear, -shear], color = 'w', alpha = 0.25)
+circle, = ax_mohr.plot(init_mohr_circle[:,0], init_mohr_circle[:,1], color = 'w', alpha = 0.35, linestyle = 'dashed')
+nt_line, = ax_mohr.plot([norm_x,norm_y], [shear, -shear], color = 'w', alpha = 0.35)
 
 # Face identifiers
 alpha_elmt = ax_elmt.text(0.75*pos_x[0], 0.75*pos_x[1], r'$\alpha$', color = 'y', ha = 'center', va = 'center')
