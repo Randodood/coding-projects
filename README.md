@@ -35,3 +35,9 @@ plane_stresses.py
 Draws the normal stress, shear stress, and traction vectors onto all sides of a rotated wedge stress element based on xy stress input. The Mohr circle is shown on a second graph. This file uses the counter-clockwise positive convention for shear stress.
 
 ![plane_stresses_example4](https://github.com/user-attachments/assets/6163d9b0-2d2a-404a-bd1b-0e02fb5f6986)
+
+draw_geodesics.py
+
+Draws a few geodesic curves, with set initial positions and velocities, in both extrinsic and intrinsic representations. This file only considers 3D manifolds that happen to be functions of x and y. Included functions with adjustable parameters are plane (linear), quadratic, gaussian, sinusoidal, and radial (spherical or hyperbolic).
+
+![geodesics_example](https://github.com/user-attachments/assets/af6a7954-c554-4467-84e5-753c5267c2d6)
