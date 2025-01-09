@@ -3,6 +3,10 @@ import numpy as np
 from matplotlib.widgets import Slider
 import matplotlib.patches as mpatches
 
+# Angle constants for the horizontal and diagonal surfaces
+ANGLE_HORIZ = -np.pi/2
+ANGLE_DIAG = 3*np.pi/4
+
 # Rotation matrix function
 def rot_matrix(theta_rad):
     return np.array([[np.cos(theta_rad), np.sin(theta_rad)],[-np.sin(theta_rad), np.cos(theta_rad)]])
@@ -40,7 +44,7 @@ shear = 0.0
 # Stresses initially in x
 pos_x = np.array([1.1,0])
 u_sigma_x = np.array([1,0])
-u_tau_xy = np.array([0,-1])
+u_tau_xy = np.array([0,1])
 sigma_x = mpatches.FancyArrow(pos_x[0], pos_x[1], norm_x*u_sigma_x[0], norm_x*u_sigma_x[1], color = 'k', head_width = 0.1, head_length = 0.1)
 ax_elmt.add_patch(sigma_x)
 tau_xy = mpatches.FancyArrow(pos_x[0], pos_x[1], shear*u_tau_xy[0], shear*u_tau_xy[1], color = 'k', head_width = 0.1, head_length = 0.1)
@@ -52,7 +56,7 @@ ax_elmt.add_patch(traction_x)
 # Stresses ininitially in y
 pos_y = np.array([0,-1.1])
 u_sigma_y = np.array([0,-1])
-u_tau_yx = np.array([1,0])
+u_tau_yx = np.array([-1,0])
 sigma_y = mpatches.FancyArrow(pos_y[0], pos_y[1], norm_y*u_sigma_y[0], norm_y*u_sigma_y[1], color = 'k', head_width = 0.1, head_length = 0.1)
 ax_elmt.add_patch(sigma_y)
 tau_yx = mpatches.FancyArrow(pos_y[0], pos_y[1], shear*u_tau_yx[0], shear*u_tau_yx[1], color = 'k', head_width = 0.1, head_length = 0.1)
@@ -64,17 +68,17 @@ ax_elmt.add_patch(traction_y)
 # Stress transformations
 # uses the counter-clockwise positive convention for shear stress
 def get_sigma_n(s_x, s_y, t_xy, theta_rad):
-    return 0.5*(s_x + s_y) + 0.5*(s_x-s_y)*np.cos(2*theta_rad) - t_xy*np.sin(2*theta_rad)
+    return 0.5*(s_x + s_y) + 0.5*(s_x-s_y)*np.cos(2*theta_rad) + t_xy*np.sin(2*theta_rad)
 
 def get_tau_nt(s_x, s_y, t_xy, theta_rad):
-    return -0.5*(s_x - s_y)*np.sin(2*theta_rad) - t_xy*np.cos(2*theta_rad)
+    return -0.5*(s_x - s_y)*np.sin(2*theta_rad) + t_xy*np.cos(2*theta_rad)
 
 # Stresses on the diagonal surface
 pos_d = 0.1*np.array([-1,1])/np.sqrt(2)
 u_sigma_d = np.array([-1,1])
-u_tau_d = np.array([1,1])
-norm_d = get_sigma_n(norm_x, norm_y, shear, np.radians(init_theta_deg)+5*np.pi/4)
-shear_d = get_tau_nt(norm_x, norm_y, shear, np.radians(init_theta_deg)+5*np.pi/4)
+u_tau_d = np.array([-1,-1])
+norm_d = get_sigma_n(norm_x, norm_y, shear, np.radians(init_theta_deg)+ANGLE_DIAG)
+shear_d = get_tau_nt(norm_x, norm_y, shear, np.radians(init_theta_deg)+ANGLE_DIAG)
 sigma_d = mpatches.FancyArrow(pos_d[0], pos_d[1], norm_d*u_sigma_d[0], norm_d*u_sigma_d[1], color = 'k', head_width = 0.1, head_length = 0.1)
 ax_elmt.add_patch(sigma_d)
 tau_d = mpatches.FancyArrow(pos_d[0], pos_d[1], shear_d*u_tau_d[0], shear_d*u_tau_d[1], color = 'k', head_width = 0.1, head_length = 0.1)
@@ -190,9 +194,9 @@ def update(val):
     Q = rot_matrix(angle_rad)
     sigma_n = get_sigma_n(sigma_x_slider.val, sigma_y_slider.val, tau_xy_slider.val, angle_rad)
     tau_nt = get_tau_nt(sigma_x_slider.val, sigma_y_slider.val, tau_xy_slider.val, angle_rad)
-    sigma_t = get_sigma_n(sigma_x_slider.val, sigma_y_slider.val, tau_xy_slider.val, angle_rad+np.pi/2)
-    sigma_dn = get_sigma_n(sigma_x_slider.val, sigma_y_slider.val, tau_xy_slider.val, angle_rad+5*np.pi/4)
-    tau_dnt = get_tau_nt(sigma_x_slider.val, sigma_y_slider.val, tau_xy_slider.val, angle_rad+5*np.pi/4)
+    sigma_t = get_sigma_n(sigma_x_slider.val, sigma_y_slider.val, tau_xy_slider.val, angle_rad+ANGLE_HORIZ)
+    sigma_dn = get_sigma_n(sigma_x_slider.val, sigma_y_slider.val, tau_xy_slider.val, angle_rad+ANGLE_DIAG)
+    tau_dnt = get_tau_nt(sigma_x_slider.val, sigma_y_slider.val, tau_xy_slider.val, angle_rad+ANGLE_DIAG)
     
     sigma_x.set_data(x=(pos_x@Q)[0], y=(pos_x@Q)[1], dx=(sigma_n*u_sigma_x@Q)[0], dy=(sigma_n*u_sigma_x@Q)[1])
     if np.abs(sigma_n) < 0.0001:
