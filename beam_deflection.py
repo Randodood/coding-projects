@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, RadioButtons, TextBox
 import numpy as np
-from scipy.sparse import csr_array, lil_array, csr_matrix
+from scipy.sparse import lil_array, csr_matrix
 from scipy.sparse.linalg import spsolve, inv
 from matplotlib.patches import FancyArrow
 
@@ -18,6 +18,7 @@ def get_quantities(L, n):
 def get_heaviside(vec_x, c):   
     return np.where(vec_x >= c, 1, 0)
 
+# Functions to draw forces, moments, and the distributed load on the beam
 def get_w(x, expression, x1, x2):
     limits = np.array([x1, x2])
     try:
@@ -79,6 +80,7 @@ def draw_force(F, cx, color = 'deepskyblue', F_obj = None):
     else:
         F_obj.set_data(x = cx, y = F, dx = 0, dy = -F), F_obj.set_color(color), F_obj.set_alpha(alpha)
 
+# Update function called by all interactable UI elements
 def general_update():
     EI = EI_slider.val
     n = resolution_slider.val
@@ -95,9 +97,12 @@ def general_update():
     Ay, M_A, By, M_B, C1, C2 = find_values(dx, EI, x, vec_one, mat_integral, vec_w, u_M, u_F, F, M, x_F, x_M, L_init)
     theta, nu = get_deflection_slope(EI, x, vec_one, mat_integral, vec_w, u_M, u_F, Ay, M_A, F, M, C1, C2)
     slope.set_data(x, theta), deflection.set_data(x, nu)
-    ax_deflection.set_ylim(min(nu)-np.exp(-((max(nu)-min(nu))/2)**2), max(nu)+np.exp(-((max(nu)-min(nu))/2)**2))
-    ax_slope.set_ylim(min(theta)-np.exp(-((max(theta)-min(theta))/2)**2), max(theta)+np.exp(-((max(theta)-min(theta))/2)**2))
-    
+    ax_deflection.set_ylim(min(nu)-0.2*np.exp(-((max(nu)-min(nu))/2)), max(nu)+0.2*np.exp(-((max(nu)-min(nu))/2)))
+    ax_slope.set_ylim(min(theta)-0.2*np.exp(-((max(theta)-min(theta))/2)), max(theta)+0.2*np.exp(-((max(theta)-min(theta))/2)))
+    M_A_text.set_text(r'$M_A=$'+str(round(M_A, 2))), A_y_text.set_text(r'$F_A=$'+str(round(Ay, 2)))
+    M_B_text.set_text(r'$M_B=$'+str(round(M_B, 2))), B_y_text.set_text(r'$F_B=$'+str(round(By, 2)))
+
+# Functions to calculate internal moment, deflection, and slope
 def get_M_ext(vec_x, vec_one, mat_int, vec_w, u_M, u_F, Ay, M_A, F, M):
     return Ay*vec_x - M_A*vec_one - mat_int@mat_int@vec_w - F*mat_int@u_F + M*u_M   
 
@@ -106,6 +111,7 @@ def get_deflection_slope(EI, vec_x, vec_one, mat_int, vec_w, u_M, u_F, Ay, M_A, 
     nu = mat_int@theta + C2*vec_one
     return theta, nu
 
+# Function to determine how to calculate unknowns
 def select_condition(condition):
     if condition == '$Fixed-Free$':
         def find_values(dx, EI, vec_x, vec_one, mat_int, vec_w, u_M, u_F, F, M, x_F, x_M, L):
@@ -114,16 +120,49 @@ def select_condition(condition):
             C1, C2, By, M_B = 0, 0, 0, 0
             return Ay, M_A, By, M_B, C1, C2
     elif condition == '$Fixed-Pinned$':
-        pass
+        def find_values(dx, EI, vec_x, vec_one, mat_int, vec_w, u_M, u_F, F, M, x_F, x_M, L):
+            C1, C2, M_B = 0, 0, 0
+            M_ext = get_M_ext(vec_x, vec_one, mat_int, vec_w, u_M, u_F, 0, 0, F, M)
+            A = csr_matrix(np.array([[-(mat_int@mat_int@vec_one)[-1], (mat_int@mat_int@vec_x)[-1], 0],
+                                     [0, 1, 1], [1, 0, L]]))
+            B = np.array([-(mat_int@mat_int@M_ext)[-1], F + dx*vec_w@vec_one, x_F*F + dx*vec_w@vec_x])
+            X = spsolve(A, B)
+            M_A, Ay, By = X[0], X[1], X[2]
+            return Ay, M_A, By, M_B, C1, C2
+    elif condition == '$Pinned-Pinned$':
+        def find_values(dx, EI, vec_x, vec_one, mat_int, vec_w, u_M, u_F, F, M, x_F, x_M, L):
+            M_A, M_B, C2 = 0, 0, 0
+            M_ext = get_M_ext(vec_x, vec_one, mat_int, vec_w, u_M, u_F, 0, 0, F, M)
+            By = (x_F*F + M + dx*vec_w@vec_one)/L
+            Ay = F + dx*vec_w@vec_one - By
+            C1 = -(1/(EI*L))*(Ay*(mat_int@mat_int@vec_x)[-1] - M_A*(mat_int@mat_int@vec_one)[-1] + (mat_int@mat_int@M_ext)[-1])
+            return Ay, M_A, By, M_B, C1, C2
+    elif condition == '$Fixed-Fixed$':
+        def find_values(dx, EI, vec_x, vec_one, mat_int, vec_w, u_M, u_F, F, M, x_F, x_M, L):
+            C1, C2 = 0, 0
+            M_ext = get_M_ext(vec_x, vec_one, mat_int, vec_w, u_M, u_F, 0, 0, F, M)
+            A = csr_matrix(np.array([[0, 0, 1, 1], 
+                                     [-(mat_int@mat_int@vec_one)[-1], 0, (mat_int@mat_int@vec_x)[-1], 0], 
+                                     [-(mat_int@vec_one)[-1], 0, (mat_int@vec_x)[-1], 0], 
+                                     [1, -1, 0, L]]))
+            B = np.array([F + dx*vec_w@vec_one, -(mat_int@mat_int@M_ext)[-1], -(mat_int@M_ext)[-1], M + x_F*F + dx*vec_w@vec_x])
+            X = spsolve(A, B)
+            M_A, M_B, Ay, By = X[0], X[1], X[2], X[3]
+            return Ay, M_A, By, M_B, C1, C2
     return find_values
-    
+
+# Specific update functions for each interactable UI element
 def textbox_update(expression):
     general_update()
     
 def slider_update(val):
     general_update()
 
-# UI
+def radio_update(label):
+    condition = label
+    general_update()
+
+# Initialize plot elements
 plt.style.use('dark_background')
 fig = plt.figure(figsize=(10,7.5))
 
@@ -139,6 +178,24 @@ ax_slope = plt.subplot2grid((12,16), (4,9), colspan = 7, rowspan = 3)
 ax_slope.set_xlim(0, 10), ax_slope.set_xlabel(r'$x$'), ax_slope.set_ylabel(r'$\theta (x)$')
 ax_slope.set_title(r'$Slope$')
 
+ax_M_A = plt.subplot2grid((24, 20), (16,0), colspan = 5, rowspan = 3)
+ax_M_A.set_xlim(-1, 1), ax_M_A.set_ylim(-1, 1), ax_M_A.set_xticks([]), ax_M_A.set_yticks([])
+M_A_text = ax_M_A.text(0, 0, r'$M_A=0$', color = 'lightgoldenrodyellow', ha = 'center', va = 'center', fontsize = 20)
+
+ax_A_y = plt.subplot2grid((24, 20), (16,5), colspan = 5, rowspan = 3)
+ax_A_y.set_xlim(-1, 1), ax_A_y.set_ylim(-1, 1), ax_A_y.set_xticks([]), ax_A_y.set_yticks([])
+A_y_text = ax_A_y.text(0, 0, r'$F_A=0$', color = 'lightgoldenrodyellow', ha = 'center', va = 'center', fontsize = 20)
+
+ax_M_B = plt.subplot2grid((24, 20), (16,10), colspan = 5, rowspan = 3)
+ax_M_B.set_xlim(-1, 1), ax_M_B.set_ylim(-1, 1), ax_M_B.set_xticks([]), ax_M_B.set_yticks([])
+M_B_text = ax_M_B.text(0, 0, r'$M_B=0$', color = 'lightgoldenrodyellow', ha = 'center', va = 'center', fontsize = 20)
+
+ax_B_y = plt.subplot2grid((24, 20), (16,15), colspan = 5, rowspan = 3)
+ax_B_y.set_xlim(-1, 1), ax_B_y.set_ylim(-1, 1), ax_B_y.set_xticks([]), ax_B_y.set_yticks([])
+B_y_text = ax_B_y.text(0, 0, r'$F_B=0$', color = 'lightgoldenrodyellow', ha = 'center', va = 'center', fontsize = 20)
+
+
+# Interactable UI elements
 ax_conditions = plt.subplot2grid((24, 18), (20, 2), colspan = 4, rowspan = 4)
 ax_conditions.set_facecolor('k')
 conditions_radio = RadioButtons(ax_conditions, 
@@ -170,7 +227,7 @@ EI_slider = Slider(
     orientation = 'vertical'
 )
 
-ax_moment_magnitude = plt.subplot2grid((24, 18), (23, 7), colspan = 4)
+ax_moment_magnitude = plt.subplot2grid((24, 36), (23, 14), colspan = 9)
 moment_magnitude_slider = Slider(
     ax = ax_moment_magnitude,
     label = r'$M$',
@@ -183,7 +240,7 @@ moment_magnitude_slider = Slider(
 moment_magnitude_slider.label.set_color('orangered')
 moment_magnitude_slider.valtext.set_color('orangered')
 
-ax_moment_position = plt.subplot2grid((24, 18), (23, 14), colspan = 4)
+ax_moment_position = plt.subplot2grid((24, 36), (23, 27), colspan = 9)
 moment_position_slider = Slider(
     ax = ax_moment_position,
     label = r'$x_M$',
@@ -196,7 +253,7 @@ moment_position_slider = Slider(
 moment_position_slider.label.set_color('orangered')
 moment_position_slider.valtext.set_color('orangered')
 
-ax_force_magnitude = plt.subplot2grid((24, 18), (22, 7), colspan = 4)
+ax_force_magnitude = plt.subplot2grid((24, 36), (22, 14), colspan = 9)
 force_magnitude_slider = Slider(
     ax = ax_force_magnitude,
     label = r'$F$',
@@ -209,7 +266,7 @@ force_magnitude_slider = Slider(
 force_magnitude_slider.label.set_color('deepskyblue')
 force_magnitude_slider.valtext.set_color('deepskyblue')
 
-ax_force_position = plt.subplot2grid((24, 18), (22, 14), colspan = 4)
+ax_force_position = plt.subplot2grid((24, 36), (22, 27), colspan = 9)
 force_position_slider = Slider(
     ax = ax_force_position,
     label = r'$x_F$',
@@ -222,7 +279,7 @@ force_position_slider = Slider(
 force_position_slider.label.set_color('deepskyblue')
 force_position_slider.valtext.set_color('deepskyblue')
 
-ax_dist_force_limit_1 = plt.subplot2grid((24, 18), (21, 7), colspan = 4)
+ax_dist_force_limit_1 = plt.subplot2grid((24, 36), (21, 14), colspan = 9)
 dist_force_limit_1_slider = Slider(
     ax = ax_dist_force_limit_1,
     label = r'$a_w$',
@@ -235,7 +292,7 @@ dist_force_limit_1_slider = Slider(
 dist_force_limit_1_slider.label.set_color('lime')
 dist_force_limit_1_slider.valtext.set_color('lime')
 
-ax_dist_force_limit_2 = plt.subplot2grid((24, 18), (21, 14), colspan = 4)
+ax_dist_force_limit_2 = plt.subplot2grid((24, 36), (21, 27), colspan = 9)
 dist_force_limit_2_slider = Slider(
     ax = ax_dist_force_limit_2,
     label = r'$b_w$',
@@ -259,11 +316,13 @@ dist_force_magnitude_textbox = TextBox(
 dist_force_magnitude_textbox.label.set_color('lime')
 dist_force_magnitude_textbox.text_disp.set_color('k')
 
+# Initial constants
 EI_init = 100
 n_init = 100
 L_init = 10
 condition = '$Fixed-Free$'
 
+# Initial quantities and plotted objects
 dx, vec_one, x, mat_integral = get_quantities(L_init, n_init)
 w_init = np.full_like(x, 0)
 w_disp, = ax_beam.plot([], [], color = 'lime', linewidth = 1)
@@ -288,9 +347,10 @@ Ay, M_A, By, M_B, C1, C2 = find_values(dx, EI_init, x, vec_one, mat_integral, ve
 theta, nu = get_deflection_slope(EI_init, x, vec_one, mat_integral, vec_w, u_M, u_F, Ay, M_A, 0, 0, C1, C2)
 slope, = ax_slope.plot(x, theta, color = 'lightgoldenrodyellow')
 deflection, = ax_deflection.plot(x, nu, color = 'lightgoldenrodyellow')
-ax_deflection.set_ylim(min(nu)-np.exp(-((max(nu)-min(nu))/2)**2), max(nu)+np.exp(-((max(nu)-min(nu))/2)**2))
-ax_slope.set_ylim(min(theta)-np.exp(-((max(theta)-min(theta))/2)**2), max(theta)+np.exp(-((max(theta)-min(theta))/2)**2))
+ax_deflection.set_ylim(min(nu)-0.2*np.exp(-((max(nu)-min(nu))/2)), max(nu)+0.2*np.exp(-((max(nu)-min(nu))/2)))
+ax_slope.set_ylim(min(theta)-0.2*np.exp(-((max(theta)-min(theta))/2)), max(theta)+0.2*np.exp(-((max(theta)-min(theta))/2)))
 
+# Update functions called by interactable UI elements
 resolution_slider.on_changed(slider_update)
 EI_slider.on_changed(slider_update)
 dist_force_limit_1_slider.on_changed(slider_update)
@@ -300,6 +360,7 @@ moment_magnitude_slider.on_changed(slider_update)
 moment_position_slider.on_changed(slider_update)
 force_magnitude_slider.on_changed(slider_update)
 force_position_slider.on_changed(slider_update)
+conditions_radio.on_clicked(radio_update)  
 dist_force_magnitude_textbox.set_val('10*np.sin(np.pi*x/10)')
 
 plt.show()
