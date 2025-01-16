@@ -8,6 +8,7 @@ STRESS_VECTOR_OFFSET = 1.1
 ANGLE = np.linspace(0, 2*np.pi, 100)
 MINIMUM_LETTER_DISTANCE = 0.05
 
+# Functions to calculate rotated vectors
 def get_rotation_matrix(yaw, pitch, roll):
     psi = np.radians(yaw)
     theta = np.radians(pitch)
@@ -30,6 +31,7 @@ def rotate_objects(stress_tensor, rotation_matrix):
 
     return stress_tensor_prime, i_prime, j_prime, k_prime
 
+# Functions to draw and update various elements
 def draw_half_cube(i_hat, j_hat, k_hat):
     half_cube_p1 = i_hat + j_hat + k_hat
     half_cube_p2 = i_hat + j_hat - k_hat
@@ -94,21 +96,29 @@ def draw_mohr_letters(sigma_u, sigma_v, tau_uv, mohr_letter_uv_u, mohr_letter_uv
     mohr_letter_uv_u.set_position([sigma_u, -tau_uv]), mohr_letter_uv_v.set_position([sigma_v, tau_uv])
     mohr_point_uv.set_offsets([(sigma_u + sigma_v)/2, 0])
     if np.abs(sigma_u - sigma_v) <= MINIMUM_LETTER_DISTANCE and np.abs(tau_uv) <= MINIMUM_LETTER_DISTANCE/2:
-        mohr_letter_uv_u.set_visible(False), mohr_letter_uv_v.set_visible(False)
+        letters_dict[mohr_letter_uv_u][0], letters_dict[mohr_letter_uv_v][0] = False, False
         mohr_point_uv.set_visible(True)
     else:
-        mohr_letter_uv_u.set_visible(True), mohr_letter_uv_v.set_visible(True)
+        letters_dict[mohr_letter_uv_u][0], letters_dict[mohr_letter_uv_v][0] = True, True
         mohr_point_uv.set_visible(False)
+        
+def update_letters_visibility():
+    for letter in letters_dict.keys():
+        if letters_dict[letter][0] and letters_dict[letter][1]:
+            letter.set_visible(True)
+        else:
+            letter.set_visible(False)
         
 def check_letters_overlap(sigma_u, tau_uv, tau_wu, mohr_letter_uv_u, mohr_letter_wu_u, mohr_point_u):
     mohr_point_u.set_offsets([sigma_u, (tau_uv - tau_wu)/2])
     if np.abs(tau_uv + tau_wu) <= MINIMUM_LETTER_DISTANCE:
-        mohr_letter_uv_u.set_visible(False), mohr_letter_wu_u.set_visible(False)
+        letters_dict[mohr_letter_uv_u][1], letters_dict[mohr_letter_wu_u][1] = False, False
         mohr_point_u.set_visible(True)
     else:
-        mohr_letter_uv_u.set_visible(True), mohr_letter_wu_u.set_visible(True)
+        letters_dict[mohr_letter_uv_u][1], letters_dict[mohr_letter_wu_u][1] = True, True
         mohr_point_u.set_visible(False)
 
+# Function called by all sliders
 def slider_update(val):
     yaw, pitch, roll = yaw_slider.val, pitch_slider.val, roll_slider.val
     sigma_x, sigma_y, sigma_z = sigma_x_slider.val, sigma_y_slider.val, sigma_z_slider.val
@@ -142,19 +152,23 @@ def slider_update(val):
     tau_alpha_beta_text.set_text(r'$\tau_{\alpha\beta}=$' + str(round(tau_alpha_beta, 2)))
     tau_beta_gamma_text.set_text(r'$\tau_{\beta\gamma}=$' + str(round(tau_beta_gamma, 2)))
     tau_gamma_alpha_text.set_text(r'$\tau_{\gamma\alpha}=$' + str(round(tau_gamma_alpha, 2)))
+    
+    update_letters_visibility()
 
 # Plot initialization
 plt.style.use('dark_background')
 fig = plt.figure(figsize=(10,7.5))
 
-# Half cube shaped stress element
+# Initialization of drawn elements and text
 ax_elmt = plt.subplot2grid((12,16), (0,0), colspan = 7, rowspan = 7, projection = '3d')
 ax_elmt.set_title('Stress Element')
 ax_elmt.set_xlim(-2, 2), ax_elmt.set_ylim(-2, 2), ax_elmt.set_zlim(-2, 2), ax_elmt.axis(False)
 ax_elmt.set_box_aspect(aspect = (1, 1, 1))
+
 ax_elmt.plot([-2, -1], [-2, -2], [-2, -2], color = 'w', linewidth = 1)
 ax_elmt.plot([-2, -2], [-2, -1], [-2, -2], color = 'w', linewidth = 1)
 ax_elmt.plot([-2, -2], [-2, -2], [-2, -1], color = 'w', linewidth = 1)
+
 ax_elmt.text(-0.75, -2, -2, r'$x$', color = 'w', ha = 'center', va = 'center')
 ax_elmt.text(-2, -0.75, -2, r'$y$', color = 'w', ha = 'center', va = 'center')
 ax_elmt.text(-2, -2, -0.75, r'$z$', color = 'w', ha = 'center', va = 'center')
@@ -162,17 +176,21 @@ ax_elmt.text(-2, -2, -0.75, r'$z$', color = 'w', ha = 'center', va = 'center')
 alpha_elmt_text = ax_elmt.text(None, None, None, '')
 beta_elmt_text = ax_elmt.text(None, None, None, '')
 gamma_elmt_text = ax_elmt.text(None, None, None, '')
+
 half_cube1, = ax_elmt.plot([], [], [], color = 'w', alpha = 0.35, linestyle = 'dashed', linewidth = 1)
 half_cube2, = ax_elmt.plot([], [], [], color = 'w', alpha = 0.35, linestyle = 'dashed', linewidth = 1)
+
 vec_sigma_alpha, = ax_elmt.plot([], [], [], color = 'lime', linewidth = 1)
 vec_sigma_beta, = ax_elmt.plot([], [], [], color = 'lime', linewidth = 1)
 vec_sigma_gamma, = ax_elmt.plot([], [], [], color = 'lime', linewidth = 1)
+
 vec_tau_alpha_beta, = ax_elmt.plot([], [], [], color = 'deepskyblue', linewidth = 1)
 vec_tau_beta_gamma, = ax_elmt.plot([], [], [], color = 'deepskyblue', linewidth = 1)
 vec_tau_gamma_alpha, = ax_elmt.plot([], [], [], color = 'deepskyblue', linewidth = 1)
 vec_tau_beta_alpha, = ax_elmt.plot([], [], [], color = 'deepskyblue', linewidth = 1)
 vec_tau_gamma_beta, = ax_elmt.plot([], [], [], color = 'deepskyblue', linewidth = 1)
 vec_tau_alpha_gamma, = ax_elmt.plot([], [], [], color = 'deepskyblue', linewidth = 1)
+
 vec_traction_alpha, = ax_elmt.plot([], [], [], color = 'red', linewidth = 1)
 vec_traction_beta, = ax_elmt.plot([], [], [], color = 'red', linewidth = 1)
 vec_traction_gamma, = ax_elmt.plot([], [], [], color = 'red', linewidth = 1)
@@ -182,6 +200,7 @@ ax_mohr.set_xlim(-2, 2), ax_mohr.set_ylim(-2, 2)
 ax_mohr.set_xlabel(r'$\sigma$'), ax_mohr.set_ylabel(r'$\tau$')
 ax_mohr.set_xticks([-2, -1, 0, 1, 2]), ax_mohr.set_yticks([-2, -1, 0, 1, 2])
 ax_mohr.set_title('Mohr Circle')
+
 mohr_circle_alpha_beta, = ax_mohr.plot([], [], color = 'w', alpha = 0.35, linestyle = 'dashed', linewidth = 1)
 mohr_circle_beta_gamma, = ax_mohr.plot([], [], color = 'w', alpha = 0.35, linestyle = 'dashed', linewidth = 1)
 mohr_circle_gamma_alpha, = ax_mohr.plot([], [], color = 'w', alpha = 0.35, linestyle = 'dashed', linewidth = 1)
@@ -197,6 +216,13 @@ mohr_letter_beta_gamma_gamma = ax_mohr.text([], [], r'$\gamma$', color = 'y', ha
 mohr_letter_gamma_alpha_gamma = ax_mohr.text([], [], r'$\gamma$', color = 'y', ha = 'center', va = 'center', visible = False)
 mohr_letter_gamma_alpha_alpha = ax_mohr.text([], [], r'$\alpha$', color = 'y', ha = 'center', va = 'center', visible = False)
 
+letters_dict = {mohr_letter_alpha_beta_alpha : [False, False], 
+                mohr_letter_alpha_beta_beta : [False, False],
+                mohr_letter_beta_gamma_beta : [False, False], 
+                mohr_letter_beta_gamma_gamma : [False, False], 
+                mohr_letter_gamma_alpha_gamma : [False, False], 
+                mohr_letter_gamma_alpha_alpha : [False, False]}
+
 mohr_point_alpha_beta = ax_mohr.scatter([], [], color = 'y', s= 10, visible = False)
 mohr_point_beta_gamma = ax_mohr.scatter([], [], color = 'y', s= 10, visible = False)
 mohr_point_gamma_alpha = ax_mohr.scatter([], [], color = 'y', s= 10, visible = False)
@@ -205,6 +231,7 @@ mohr_point_alpha = ax_mohr.scatter([], [], color = 'y', s= 10, visible = True)
 mohr_point_beta = ax_mohr.scatter([], [], color = 'y', s= 10, visible = True)
 mohr_point_gamma = ax_mohr.scatter([], [], color = 'y', s= 10, visible = True)
 
+# Sliders
 ax_yaw = plt.subplot2grid((24, 18), (21, 0), colspan = 18, rowspan = 1)
 yaw_slider = Slider(
     ax = ax_yaw,
@@ -363,8 +390,11 @@ tau_beta_gamma_text = ax_tau_beta_gamma.text(0, 0, r'$\tau_{\beta\gamma}=0$', co
 ax_tau_gamma_alpha = plt.subplot2grid((24,6), (16,4), rowspan = 2)
 ax_tau_gamma_alpha.set_xlim(-1, 1), ax_tau_gamma_alpha.set_ylim(-1, 1), ax_tau_gamma_alpha.set_xticks([]), ax_tau_gamma_alpha.set_yticks([])
 tau_gamma_alpha_text = ax_tau_gamma_alpha.text(0, 0, r'$\tau_{\alpha\gamma}=0$', color = 'deepskyblue', ha = 'center', va = 'center', fontsize = 15)
-    
+
+# Initializing the half cube stress element
 draw_half_cube(I_HAT, J_HAT, K_HAT)
+
+# Associating every sliders to the slider update function
 yaw_slider.on_changed(slider_update), pitch_slider.on_changed(slider_update), roll_slider.on_changed(slider_update)
 sigma_x_slider.on_changed(slider_update), sigma_y_slider.on_changed(slider_update), sigma_z_slider.on_changed(slider_update)
 tau_xy_slider.on_changed(slider_update), tau_yz_slider.on_changed(slider_update), tau_zx_slider.on_changed(slider_update)

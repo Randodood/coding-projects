@@ -36,9 +36,12 @@ Draws the normal stress, shear stress, and traction vectors onto all sides of a 
 
 ![plane_stresses example](https://github.com/user-attachments/assets/a288126d-8792-4408-8a82-0ac4c13b44cc)
 
-
 draw_geodesics.py
 
 Draws a few geodesic curves, with set initial positions and velocities, in both extrinsic and intrinsic representations. This file only considers 3D manifolds that happen to be functions of x and y. Included functions with adjustable parameters are plane (linear), quadratic, gaussian, sinusoidal, and radial (spherical or hyperbolic).
 
 ![geodesics example](https://github.com/user-attachments/assets/af6a7954-c554-4467-84e5-753c5267c2d6)
+
+3D_element_stresses.py
+
+Draws the normal and the shear stresses as well as the traction vector on 3 faces of a cube. Faces can be rotated using Euler angles. This file uses a rotation matrix with the transformation order being yaw first, then pitch, and roll. The exact rotation matrix can be found on Wikipedia's article about rotation matrices as the second example under General 3D rotations: https://en.wikipedia.org/wiki/Rotation_matrix. The Mohr's circles are also drawn on a second graph.
