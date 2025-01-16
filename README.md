@@ -42,6 +42,10 @@ Draws a few geodesic curves, with set initial positions and velocities, in both 
 
 ![geodesics example](https://github.com/user-attachments/assets/af6a7954-c554-4467-84e5-753c5267c2d6)
 
+3D_element_stresses.py
+
+Draws the normal and the shear stresses as well as the traction vector on 3 faces of a cube. Faces can be rotated using Euler angles. This file uses a rotation matrix with the transformation order being yaw first, then pitch, and roll. The exact rotation matrix can be found on Wikipedia's article about rotation matrices as the second example under General 3D rotations: https://en.wikipedia.org/wiki/Rotation_matrix. The Mohr's circles are also drawn on a second graph.
+
 beam_deflection.py
 
 Graphs the the deflection and slope of a beam under a distributed load, a force, and a moment. Displays the reaction forces and moments located at the ends of the beam. All 4 possible support conditions, which are fixed-free, fixed-pinned, pinned-pinned, and fixed-fixed, are available.
