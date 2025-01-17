@@ -5,8 +5,9 @@ from matplotlib.widgets import Slider
 SLIDER_FONTSIZE = 12
 SLIDER_COLOR = 'steelblue'
 CUBE_COLOR = 'skyblue'
+FACE_COLOR = 'steelblue'
 EDGE_WIDTH = 0.75
-
+NULL_ARRAY = np.zeros((2, 2))
 # Functions to initiate the cube elements
 def initiate_cube_vertices(dimension, edge_length = 2):
     vertices = []
@@ -30,10 +31,54 @@ def initiate_cube_edges():
         edges.append(edge)
     return edges
 
+def initiate_cube_faces():
+    faces = []
+    for i in range(24):
+        face = ax_cube.plot_surface(NULL_ARRAY, NULL_ARRAY, NULL_ARRAY, color = CUBE_COLOR, linewidth = EDGE_WIDTH)
+        faces.append(face)
+    return faces
+
 # Functions to draw the cube in the 3D space
 def draw_edge(edge, vertices, row_index1, row_index2):
     edge.set_data([vertices[row_index1,0], vertices[row_index2,0]], [vertices[row_index1,1], vertices[row_index2,1]])
     edge.set_3d_properties([vertices[row_index1,2], vertices[row_index2,2]])
+    
+
+def draw_face(faces, vertices, row_index1, row_index2, row_index3, row_index4, vertex_index):
+    corners = np.array([vertices[row_index1], vertices[row_index2], vertices[row_index3], vertices[row_index4]])
+    X, Y, Z = corners[:, 0].reshape(2, 2), corners[:, 1].reshape(2, 2), corners[:, 2].reshape(2, 2)
+    faces[vertex_index].remove()
+    faces[vertex_index] = ax_cube.plot_surface(X, Y, Z, color = FACE_COLOR, alpha = 0.15)
+    
+def draw_faces(faces, vertices):
+    draw_face(faces, vertices, 0, 2, 4, 6, 0)
+    draw_face(faces, vertices, 0, 4, 12, 8, 1)
+    draw_face(faces, vertices, 0, 8, 2, 10, 2)
+    draw_face(faces, vertices, 14, 10, 8, 12, 3)
+    draw_face(faces, vertices, 2, 10, 14, 6, 4)
+    draw_face(faces, vertices, 4, 12, 14, 6, 5)
+    
+    draw_face(faces, vertices, 1, 3, 5, 7, 6)
+    draw_face(faces, vertices, 1, 5, 13, 9, 7)
+    draw_face(faces, vertices, 1, 9, 3, 11, 8)
+    draw_face(faces, vertices, 15, 11, 9, 13, 9)
+    draw_face(faces, vertices, 3, 11, 15, 7, 10)
+    draw_face(faces, vertices, 5, 13, 15, 7, 11)
+    
+    draw_face(faces, vertices, 0, 1, 3, 2, 12)
+    draw_face(faces, vertices, 4, 5, 7, 6, 13)
+    draw_face(faces, vertices, 8, 9, 11, 10, 14)
+    draw_face(faces, vertices, 12, 13, 15, 14, 15)
+    
+    draw_face(faces, vertices, 0, 1, 5, 4, 16)
+    draw_face(faces, vertices, 2, 3, 7, 6, 17)
+    draw_face(faces, vertices, 8, 9, 13, 12, 18)
+    draw_face(faces, vertices, 10, 11, 15, 14, 19)
+    
+    draw_face(faces, vertices, 0, 1, 9, 8, 20)
+    draw_face(faces, vertices, 2, 3, 11, 10, 21)
+    draw_face(faces, vertices, 4, 5, 13, 12, 22)
+    draw_face(faces, vertices, 6, 7, 15, 14, 23)
 
 def draw_cube(edges, vertices):
     draw_edge(edges[0], vertices, 0, 1), draw_edge(edges[1], vertices, 0, 2), draw_edge(edges[2], vertices, 0, 4)
@@ -66,6 +111,7 @@ def rotate_cube(val):
     R = get_rotation_matrix(xy, xz, yz, xw, yw, zw)
     cube_vertices = np.matmul(initial_cube_vertices, R)
     draw_cube(cube_edges, cube_vertices)
+    draw_faces(cube_faces, cube_vertices)
 
 # Initialization of plot
 plt.style.use('dark_background')
@@ -178,10 +224,18 @@ zw_slider.valtext.set_color(SLIDER_COLOR)
 # Initialize cube
 initial_cube_vertices = initiate_cube_vertices(4)
 cube_edges = initiate_cube_edges()
+cube_faces = initiate_cube_faces()
 draw_cube(cube_edges, initial_cube_vertices)
+draw_faces(cube_faces, initial_cube_vertices)
 
 # Update cube when sliders are interacted with
 xy_slider.on_changed(rotate_cube), xz_slider.on_changed(rotate_cube), yz_slider.on_changed(rotate_cube)
 xw_slider.on_changed(rotate_cube), yw_slider.on_changed(rotate_cube), zw_slider.on_changed(rotate_cube)
+
+vertices = initiate_cube_vertices(4)
+displayed_vertices = np.zeros((16,5))
+displayed_vertices[:,:4] = vertices
+displayed_vertices[:,4] = np.arange(16)
+print(displayed_vertices)
 
 plt.show()
