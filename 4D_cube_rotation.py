@@ -232,10 +232,4 @@ draw_faces(cube_faces, initial_cube_vertices)
 xy_slider.on_changed(rotate_cube), xz_slider.on_changed(rotate_cube), yz_slider.on_changed(rotate_cube)
 xw_slider.on_changed(rotate_cube), yw_slider.on_changed(rotate_cube), zw_slider.on_changed(rotate_cube)
 
-vertices = initiate_cube_vertices(4)
-displayed_vertices = np.zeros((16,5))
-displayed_vertices[:,:4] = vertices
-displayed_vertices[:,4] = np.arange(16)
-print(displayed_vertices)
-
 plt.show()
