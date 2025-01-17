@@ -53,3 +53,9 @@ Graphs the the deflection and slope of a beam under a distributed load, a force,
 Draws the normal and the shear stresses as well as the traction vector on 3 faces of a cube. Faces can be rotated using Euler angles. This file uses a rotation matrix with the transformation order being yaw first, then pitch, and roll. The exact rotation matrix can be found on Wikipedia's article about rotation matrices as the second example under General 3D rotations: https://en.wikipedia.org/wiki/Rotation_matrix. The Mohr's circles are also drawn on a second graph.
 
 ![3D_element_stresses](https://github.com/user-attachments/assets/f31a58a8-7ae0-4e0a-9164-24e435c71692)
+
+4D_cube_rotation.py
+
+Draws the projection of a rotated tesseract onto 3D space (x, y, z). This code uses a 4D rotation matrix which applies rotations on the cube in the following order: xy, xz, yz, xw, yw, zw.
+
+![4D_cube_rotations_example](https://github.com/user-attachments/assets/bf343122-d5e1-4c64-bb01-5a54f7dc2481)
