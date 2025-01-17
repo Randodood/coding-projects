@@ -58,4 +58,5 @@ Draws the normal and the shear stresses as well as the traction vector on 3 face
 
 Draws the projection of a rotated tesseract onto 3D space (x, y, z). This code uses a 4D rotation matrix which applies rotations on the cube in the following order: xy, xz, yz, xw, yw, zw.
 
-![4D_cube_rotations_example](https://github.com/user-attachments/assets/bf343122-d5e1-4c64-bb01-5a54f7dc2481)
+![4D_cube_rotation_example_2](https://github.com/user-attachments/assets/de367256-0f49-4a98-8e06-32d012194181)
+
